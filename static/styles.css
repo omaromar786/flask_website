@@ -1,0 +1,89 @@
+/* Reset default browser styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Golos Text', sans-serif;
+    /* Responsive design */
+    max-width: 100%; /* Ensures the paragraph does not exceed the width of its container */
+    width: auto; /* Allows the paragraph to adjust its width based on the container */
+    box-sizing: border-box; /* Ensures padding is included in the total width */
+}
+
+p {
+    font-family: 'Golos Text', sans-serif;
+    font-size: 20px;
+    line-height: 1.5;
+    color: #04201a;
+    padding: 10 10 10px; /* Example padding */
+}
+
+h1 {
+    font-weight: bold;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+body {
+    background-color: #ebebe2; /* Light gray background color */
+}
+
+/* Basic styling for the navbar */
+.navbar {
+    background-color: #f5efeb; /* Dark Green background */
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 15px;
+    padding-right: 15px;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed; /* Make navbar fixed */
+    top: 0; /* Position it at the top */
+    width: 100%; /* Ensure it spans the full width of the viewport */
+    z-index: 1000; /* Ensure it is above other content */
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 20px; /* Larger font size for brand */
+    font-weight: 1000;
+    color: #04201a; /* black text color */
+    text-decoration: none; /* Remove underline */
+}
+
+.navbar-links {
+    margin-left: auto; /* Align links to the right */
+}
+
+.navbar-nav {
+    list-style-type: none; /* Remove default list styles */
+    display: flex;
+}
+
+.nav-item {
+    margin-right: 20px; /* Spacing between nav items */
+}
+
+.nav-link {
+    text-decoration: none; /* Remove underline */
+    color: #04201a; /* White text color */
+    font-size: 20px;
+    transition: color 0.3s; /* Smooth color transition */
+    padding: 30px;
+}
+
+.nav-link:hover {
+   font-weight: bold;
+}
+
+.container { /* important for the whole body below the navbar */
+    margin-top: 80px; /* Margin top for content 80px navbar height + 15 px */
+    padding: 5px;
+    background-color: #ebebe2;
+}
+
+

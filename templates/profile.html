@@ -1,0 +1,81 @@
+{% extends "navbar.html" %}
+
+{% block title %} User Profile {% endblock %}
+
+{% block head %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .profile-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .profile-image {
+            border-radius: 50%;
+            width: 250px;
+            height: 250px;
+        }
+        .username, .email {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .logout-button {
+            background-color: #9d3636;
+            color: white;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="profile-container">
+        {% if 'username' in session %}
+            <div class="username">Username: {{ session['username'] }}</div>
+            {% if user %}
+                <div class="email">Email: {{ user.email }}</div>
+            {% endif %}
+            <button class="button logout-button" onclick="logout()">Logout</button>
+        {% else %}
+            <p>You are not logged in. Please <a href="{{ url_for('show_login') }}">login</a> to view your profile.</p>
+        {% endif %}
+    </div>
+
+    <script>
+    function logout() {
+        fetch('/logout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Logout successful') {
+                window.location.href = '/login/';
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+    </script>
+{% endblock %}
+

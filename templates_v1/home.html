@@ -1,0 +1,32 @@
+{% extends "navbar.html" %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+<div style="text-align: center;">
+    <h1>Project Info</h1>
+    <p>Here we will tell you about our exciting project.</p>
+    <br>
+    <div style="max-width: 100%; display: flex; justify-content: center; margin-bottom: 0px;">
+        <div style="flex: 1; max-width: 50%; padding: 0 10px;">
+            <img src="static/internship_photo2.png" alt="Image 2" style="max-width: 100%; height: 95%;">
+        </div>
+    </div>
+    <div style="padding: 0 40px;">
+        <p>Our project integrates advanced technology to enhance agriculture sustainably.</p>
+        <p>Using sensors like UbiBot, Raspberry Pi, and smarter microcontrollers,
+        we collect precise data for optimal farming conditions.</p>
+        <p>Our Python-Flask-Dash website offers intuitive control,
+        allowing manual adjustments and automatic decision-making beyond basic timers.</p>
+        <p>Join us in revolutionizing farming with smart, efficient solutions
+        that maximize yields while minimizing environmental impact.</p>
+        <p>Explore our site to learn more about our innovative approach to agriculture.</p>
+    </div>
+    <br>
+    <div style="max-width: 100%; display: flex; justify-content: center; margin-bottom: 0px;">
+        <div style="flex: 1; max-width: 50%; padding: 0 10px;">
+            <img src="static/internship_photo1.png" alt="Image 1" style="max-width: 80%; height: 95%;">
+        </div>
+    </div>
+</div>
+{% endblock %}

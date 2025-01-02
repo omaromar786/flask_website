@@ -1,0 +1,303 @@
+{% extends "navbar.html" %}
+{% block title %} System Data Dashboard {% endblock %}
+
+{% block head %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background-color: #ebebe2;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between; 
+        align-items: center;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .header img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .content {
+        padding: 20px;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .graph-container {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .graph {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .table-container {
+        margin-top: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .pagination button {
+        margin: 0 5px;
+        padding: 10px 20px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .pagination button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    .pagination input {
+        width: 50px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Live VRM Data</h1>
+    <img src="/static/VRM_logo.png" alt="Weather Icon">
+</div>
+
+<div class="content">
+    <h2>System Graphs</h2>
+    <div class="graph-container">
+        <div class="graph">
+            <canvas id="chart1"></canvas>
+        </div>
+        <div class="graph">
+            <canvas id="chart2"></canvas>
+        </div>
+    </div>
+
+    <h2>System Data Table</h2>
+    <div class="table-container">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Battery SOC (%)</th>
+                    <th>Solar Power (W)</th>
+                    <th>Load Power (W)</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="pagination">
+            <button id="prevPage">Back</button>
+            <input type="number" id="currentPage" value="1" min="1">
+            <button id="nextPage">Next</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const rowsPerPage = 20;
+    let currentPage = 1;
+    let data = [];
+
+    fetch('/get_VRM_data')
+    .then(response => response.json())
+    .then(fetchedData => {
+        data = fetchedData;
+        renderTable();
+        setupPagination();
+
+        const timestamps = data.map(item => {
+            const date = new Date(item.formatted_time);
+            date.setHours(date.getHours() + 8); // Adjust for GMT+8
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        });
+
+        const batterySOC = data.map(item => parseFloat(item.battery_soc));
+        const solarPower = data.map(item => parseFloat(item.solar_power));
+        const loadPower = data.map(item => parseFloat(item.load_power));
+
+        // Chart 1 - Battery SOC
+        const ctx1 = document.getElementById('chart1').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: [{
+                    label: 'Battery SOC (%)',
+                    data: batterySOC,
+                    borderColor: 'blue',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Chart 2 - Solar and Load Power
+        const ctx2 = document.getElementById('chart2').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: [
+                    {
+                        label: 'Solar Power (W)',
+                        data: solarPower,
+                        borderColor: 'orange',
+                        fill: false
+                    },
+                    {
+                        label: 'Load Power (W)',
+                        data: loadPower,
+                        borderColor: 'green',
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+    function renderTable() {
+        const tbody = document.querySelector('#dataTable tbody');
+        tbody.innerHTML = '';
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = data.slice(start, end);
+
+        pageData.forEach(item => {
+            const date = new Date(item.formatted_time);
+            date.setHours(date.getHours() + 8); // Adjust for GMT+8
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+
+            const formattedTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${formattedTime}</td>
+                <td>${item.battery_soc}</td>
+                <td>${item.solar_power}</td>
+                <td>${item.load_power}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function setupPagination() {
+        const prevButton = document.getElementById('prevPage');
+        const nextButton = document.getElementById('nextPage');
+        const pageInput = document.getElementById('currentPage');
+
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                pageInput.value = currentPage;
+                renderTable();
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentPage < Math.ceil(data.length / rowsPerPage)) {
+                currentPage++;
+                pageInput.value = currentPage;
+                renderTable();
+            }
+        });
+
+        pageInput.addEventListener('change', () => {
+            const page = parseInt(pageInput.value, 10);
+            if (page >= 1 && page <= Math.ceil(data.length / rowsPerPage)) {
+                currentPage = page;
+                renderTable();
+            } else {
+                pageInput.value = currentPage;
+            }
+        });
+    }
+</script>
+{% endblock %}
+

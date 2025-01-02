@@ -1,0 +1,226 @@
+{% extends "navbar.html" %}
+{% block title %} Timer Mode {% endblock %}
+
+{% block head %}
+<style>
+body {
+    overflow-y: auto;
+    background-color: #f8f8f8; /* Adjust this color to match your website's background */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.mode-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.mode-button {
+    font-size: 20px;
+    padding: 15px 30px;
+    margin: 10px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.mode-button.active {
+    background-color: #4caf50;
+    color: white;
+    border-color: #4caf50;
+    pointer-events: none;
+}
+
+.mode-button:hover {
+    background-color: #f0f0f0;
+}
+
+.instructions {
+    margin-top: 40px;
+    padding: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f8f8f8; /* Matches the website's background */
+}
+
+.instructions h2 {
+    text-align: center;
+    color: #333;
+    font-size: 24px; /* Larger heading font size */
+}
+
+.instructions ol {
+    padding-left: 20px;
+    line-height: 1.8;
+    color: #555;
+    font-size: 18px; /* Larger text for instructions */
+}
+
+.instructions img {
+    max-width: 100%;
+    height: auto;
+    margin: 10px 0;
+}
+
+.gradient-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px; /* Consistent width with Light Control container */
+    margin: 20px auto;
+    text-align: center;
+}
+
+.gradient-bar {
+    width: 100%;
+    display: block;
+}
+
+.arrow {
+    position: absolute;
+    width: 20px; /* Adjust arrow size */
+    height: auto;
+    top: -10px; /* Align arrow vertically */
+    transform: translateX(-50%);
+}
+
+.gradient-label {
+    position: absolute;
+    font-weight: bold;
+    color: red; /* Use red for visibility */
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%);
+}
+
+.gradient-label.left {
+    left: 0; /* Aligns the "<800" label to the left */
+}
+
+.gradient-label.right {
+    right: 0; /* Aligns the "950+" label to the right */
+}
+
+.custom-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    text-align: center;
+    margin: 20px auto;
+    border: 1px solid #ccc;
+}
+
+.custom-container h2 {
+    font-size: 32px;
+    line-height: 2;
+    color: #393831;
+    margin-bottom: 20px;
+}
+
+.monitoring-container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    text-align: center;
+    margin: 20px auto;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+}
+
+.monitoring-container h2 {
+    font-size: 28px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.monitoring-container p {
+    font-size: 18px;
+    color: #555;
+    margin: 10px 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="monitoring-container">
+        <h2>Monitoring</h2>
+        <p>Current Moisture Level: <span id="moisturePercent">Loading...</span></p>
+        <p>Current Tank Water Level: <span id="waterPercent">Loading...</span></p>
+    </div>
+
+    <div class="mode-container">
+        <form method="POST" action="/switch-mode">
+            <button class="mode-button active" name="mode" value="Timer">
+                Timer
+            </button>
+        </form>
+        <form method="POST" action="/switch-mode">
+            <button class="mode-button" name="mode" value="Sensor">
+                Sensor
+            </button>
+        </form>
+    </div>
+    
+    <h1 style="text-align: center; margin-top: 10px;">Timer Mode</h1>
+
+    <div class="instructions">
+        <h2>Setup Instructions</h2>
+        <ol>
+            <li>Go to <a href="https://play.google.com/store/apps/details?id=com.tuya.smartlife&hl=en_SG" target="_blank">Google Play Store</a> or <a href="https://apps.apple.com/us/app/smart-life-smart-living/id1115101477" target="_blank">Apple App Store</a> to download the Smart Life app.</li>
+            <img src="static/timer_picture1.png" alt="Download App">
+
+            <li>Open the app and follow the instructions to connect to the WIFI plug.</li>
+            <img src="static/timer_picture2.png" alt="Connect to WiFi Plug">
+
+            <li>You can now freely control the pump from anywhere with this app, either manually or with a timer.</li>
+            <img src="static/timer_picture3.png" alt="Control Pump">
+
+            <li>Go to Timer > Inching to set up how long you want the pump to run, or go to Timer > Schedule to set when you want the pump to run.</li>
+            <img src="static/timer_picture4.png" alt="Set Timer">
+        </ol>
+    </div>
+
+<script>
+    // Fetch the moisture value from the server
+    async function fetchMoistureValue() {
+        try {
+            const response = await fetch('/latest_moisture'); // Endpoint in app.py
+            const data = await response.json();
+            let moistureValue = data.moisture || 800;
+            const waterLevelPercent = data.water_level_percent || 0;
+
+            // Constrain moistureValue to the range [800, 950]
+            if (moistureValue < 800) {
+                moistureValue = 800;
+            } else if (moistureValue > 950) {
+                moistureValue = 950;
+            }
+
+            // Calculate soil_moisture_percent
+            const soilMoisturePercent = 1 - ((moistureValue - 800) / (950 - 800));
+
+            // Update text
+            document.getElementById('moisturePercent').innerText = `${(soilMoisturePercent * 100).toFixed(2)}%`;
+            document.getElementById('waterPercent').innerText = `${waterLevelPercent}%`;
+        } catch (error) {
+            console.error('Error fetching moisture value:', error);
+            document.getElementById('moisturePercent').innerText = "Error fetching value";
+            document.getElementById('waterPercent').innerText = "Error fetching value";
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchMoistureValue(); // Run it once when the page loads
+        setInterval(fetchMoistureValue, 60000); // Run it every 60 seconds
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "navbar.html" %}
+
+{% block title %}Login Page{% endblock %}
+
+{% block head %}
+    <style>
+        p {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #393831;
+            padding: 10 10 10px; /* Example padding */
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h2 {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 30px;
+            line-height: 2;
+            color: #393831;
+            padding-left: 10px;
+            padding-right: 10px;
+            padding-bottom: 0px;
+            padding-right: 10px;
+        }
+        .login-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .login-container h2 {
+            margin-bottom: 10px;
+        }
+        .login-container input {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #000000;
+            width: calc(100% - 10px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .login-container button {
+            width: calc(100% - 10px);
+            padding: 10px;
+            background-color: #b2bda0;
+            color: black;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .login-container button:hover {
+            background-color: #8d9e6f;
+            color: black;
+        }
+        .login-container p {
+            margin-top: 20px;
+        }
+        .login-container a {
+            color: #160d95;
+            text-decoration: none;
+        }
+        .login-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account?</p>
+        <p>You may not be an authorized user</p>
+        <!--<p>Don't have an account? <a href="/register/">Register</a></p>-->
+    <!--Do not allow any new registerations-->
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            fetch('/submit_login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    window.location.href = '/';  // Redirect to home page
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    </script>
+{% endblock %}

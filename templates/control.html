@@ -1,0 +1,363 @@
+{% extends "navbar.html" %}
+
+{% block title %}Light Control{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        overflow-y: scroll; /* Enable vertical scroll */
+    }
+
+    .custom-container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-width: 600px; /* Adjusted container width */
+        margin: 20px auto;
+        text-align: center;
+        border: 1px solid #ccc;
+    }
+
+    .switch-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .form-container {
+        margin-top: 20px;
+    }
+
+    .form-container label {
+        font-size: 1.5rem; /* Larger text for 'illumination needed' */
+        font-weight: bold;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .form-container input {
+        padding: 10px;
+        font-size: 1.2rem; /* Larger input text */
+        width: 80%;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .form-container button {
+        padding: 15px 30px;
+        font-size: 1.2rem; /* Larger submit button */
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #b2bda0;
+        color: black;
+    }
+
+    .form-container button:hover {
+        background-color: #a0ad90;
+    }
+
+    .button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #b2bda0; /* Default button color */
+        color: black;
+    }
+
+    .button:hover {
+        background-color: #a0ad90;
+    }
+
+    .on-button.active {
+        background-color: #4CAF50; /* Green when active */
+        color: white;
+    }
+
+    .off-button.active {
+        background-color: #f44336; /* Red when active */
+        color: white;
+    }
+
+    .yes-button.active {
+        background-color: #4CAF50; /* Green for Yes */
+        color: white;
+    }
+
+    .no-button.active {
+        background-color: #f44336; /* Red for No */
+        color: white;
+    }
+
+    .status-image {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 20px;
+    }
+
+    .gradient-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px; /* Adjusted width */
+    margin: 20px auto;
+    text-align: center;
+    }
+
+    .gradient-bar {
+        width: 100%;
+        display: block;
+    }
+
+    .arrow {
+        position: absolute;
+        width: 20px; /* Adjust arrow image size */
+        height: auto;
+        top: -10px; /* Adjust vertical alignment */
+        transform: translateX(-50%);
+    }
+
+    .gradient-label {
+        position: absolute;
+        font-weight: bold;
+        color: red; /* Adjust color for clarity */
+        top: 50%; /* Center vertically */
+        transform: translateY(-50%);
+    }
+
+    .gradient-label.left {
+        left: 0; /* Align left */
+    }
+
+    .gradient-label.right {
+        right: 0; /* Align right */
+    }
+</style>
+
+<script>
+    // Fetch and update the current state for On/Off Light Control
+    async function fetchCurrentState() {
+        try {
+            const response = await fetch('/light_status');
+            const data = await response.json();
+            const currentState = data.action;
+
+            updateStatusImage(currentState);
+            updateButtonState(currentState); // Update the On/Off buttons
+        } catch (error) {
+            console.error('Error fetching light status:', error);
+        }
+    }
+
+    async function fetchAutoState() {
+        try {
+            const response = await fetch('/auto_state');
+            const data = await response.json();
+            updateAutoButtonState(data.auto); // Update the Yes/No buttons
+        } catch (error) {
+            console.error('Error fetching auto state:', error);
+        }
+    }
+
+    function updateButtonState(currentState) {
+        const onButton = document.getElementById('onButton');
+        const offButton = document.getElementById('offButton');
+
+        if (currentState === 'On') {
+            onButton.classList.add('active');
+            offButton.classList.remove('active');
+        } else {
+            offButton.classList.add('active');
+            onButton.classList.remove('active');
+        }
+    }
+
+    function updateAutoButtonState(currentState) {
+        const yesButton = document.getElementById('yesButton');
+        const noButton = document.getElementById('noButton');
+
+        if (currentState === 'Yes') {
+            yesButton.classList.add('active');
+            noButton.classList.remove('active');
+        } else {
+            noButton.classList.add('active');
+            yesButton.classList.remove('active');
+        }
+    }
+
+    function updateStatusImage(currentState) {
+        const statusImage = document.getElementById('statusImage');
+        if (currentState === 'On') {
+            statusImage.src = '/static/light_control_picture_on.png';
+            statusImage.alt = 'Light is On';
+        } else {
+            statusImage.src = '/static/light_control_picture_off.png';
+            statusImage.alt = 'Light is Off';
+        }
+    }
+
+    async function updateState(action) {
+        try {
+            await fetch('/update_state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action }),
+            });
+            fetchCurrentState();
+        } catch (error) {
+            console.error('Error updating state:', error);
+        }
+    }
+
+    async function updateAutoState(autoValue) {
+        try {
+            await fetch('/auto_state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ auto: autoValue }),
+            });
+            fetchAutoState();
+            fetchCurrentState(); // Refresh light state as well
+        } catch (error) {
+            console.error('Error updating auto state:', error);
+        }
+    }
+
+    async function submitIllumination(event) {
+        event.preventDefault(); // Prevent page reload
+        const illuminationValue = document.getElementById('illuminationInput').value;
+
+        try {
+            const response = await fetch('/submit_illumination', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ illumination: illuminationValue })
+            });
+
+            const result = await response.json();
+
+            updatePlaceholderWithLatestIllumination()
+
+            // Optionally show a success alert
+            alert(result.message || 'Illumination level submitted successfully!');
+        } catch (error) {
+            console.error('Error submitting illumination level:', error);
+            document.getElementById('set_illumination_value').innerText = "Error";
+        }
+    }
+    // Function to calculate arrow position based on illumination value
+    function updateArrowPosition(illuminationValue) {
+        const arrow = document.getElementById('arrow');
+        const gradientContainer = document.querySelector('.gradient-container');
+        const maxIllumination = 300;
+
+        // Clamp illumination value between 0 and 300
+        const clampedValue = Math.min(Math.max(illuminationValue, 0), maxIllumination);
+
+        // Calculate position percentage
+        const positionPercentage = (clampedValue / maxIllumination) * 100;
+
+        // Update arrow position
+        arrow.style.left = `${positionPercentage}%`;
+    }
+
+    // Fetch illumination value dynamically and update arrow
+    async function fetchIlluminationValue() {
+        try {
+            const response = await fetch('/latest_illumination');
+            const data = await response.json();
+            const illuminationValue = data.illumination || 0;
+
+            // Update text and arrow position
+            document.getElementById('illuminationValue').innerText = illuminationValue;
+            updateArrowPosition(illuminationValue);
+        } catch (error) {
+            console.error('Error fetching illumination value:', error);
+            document.getElementById('illuminationValue').innerText = "Error fetching value";
+        }
+    }
+
+    async function updatePlaceholderWithLatestIllumination() {
+        try {
+            const response = await fetch('/fetch_set_illumination'); // Flask endpoint
+            if (response.ok) {
+                const data = await response.json();
+                const illuminationValue = data.illumination_needed || "N/A";
+
+                // Update the placeholder with the latest value
+                document.getElementById('illuminationInput').placeholder = 
+                    `Current illumination value set: ${illuminationValue}`;
+            } else {
+                console.error('Failed to fetch illumination value.');
+            }
+        } catch (error) {
+            console.error('An error occurred while updating the placeholder:', error);
+        }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchIlluminationValue();
+        fetchAutoState();
+        fetchCurrentState();
+        updatePlaceholderWithLatestIllumination();
+        setInterval(fetchMoistureValue, 60000); // Run it every 30 seconds
+    });
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="custom-container">
+    <h2>Auto Mode</h2>
+    <div class="switch-container">
+        <button id="yesButton" class="button yes-button" onclick="updateAutoState('Yes')">Yes</button>
+        <button id="noButton" class="button no-button" onclick="updateAutoState('No')">No</button>
+    </div>
+
+    <div class="form-container">
+        <form onsubmit="submitIllumination(event)">
+            <label for="illuminationInput">Illumination level needed</label><br>
+            <input 
+                type="number" 
+                id="illuminationInput" 
+                name="illumination" 
+                placeholder="Enter illumination value:" 
+                style="width: 100%; box-sizing: border-box;" 
+                inputmode="decimal" 
+                pattern="^\d*\.?\d*$">
+            <button id="submit-button" type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+<div class="custom-container">
+    <h2>Light Control</h2>
+    <p class="info-text">Illumination value: <span id="illuminationValue">Loading...</span></p>
+    <p class="info-text">0 is extremely dark while 300 is bright.</p>
+
+    <div class="gradient-container">
+        <!-- Left label (0) -->
+        <span class="gradient-label left">0</span>
+
+        <!-- Gradient Bar -->
+        <img src="/static/brightness_gradient_v1.png" alt="Brightness Scale" class="gradient-bar">
+
+        <!-- Right label (300+) -->
+        <span class="gradient-label right">300+</span>
+
+        <!-- Arrow Indicator -->
+        <img id="arrow" src="/static/brightness_arrow.png" alt="Indicator Arrow" class="arrow">
+    </div>
+
+    <img id="statusImage" class="status-image" src="" alt="Loading...">
+    <div class="switch-container">
+        <button id="onButton" class="button on-button" onclick="updateState('On')">On</button>
+        <button id="offButton" class="button off-button" onclick="updateState('Off')">Off</button>
+    </div>
+</div>
+{% endblock %}

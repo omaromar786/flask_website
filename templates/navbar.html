@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AST SP Internship</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tibetan&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Golos+Text&display=swap" rel="stylesheet">
+    <meta http-equiv="refresh" content="300"> <!-- Refresh every 5 min -->
+    {% block head %}{% endblock %}
+    </head>
+<body>
+    <nav class="navbar">
+        <a class="navbar-brand" href="/">AST SP Internship</a>
+        <div class="navbar-links">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Project_Info</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/data/">System_Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/weather/">Weather_Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/VRM">VRM_Data</a>
+                </li>
+                {% if 'username' in session %}
+                    <!-- Display these links when user is logged in -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/control/">Light_Control</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mode-switch">Irrigation</a> <!-- Add Mode Switch -->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile/">Profile</a>
+                    </li>   
+                {% else %}
+                    <!-- Display these links when user is not logged in -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login/">Login</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
